@@ -1,9 +1,19 @@
 #!/usr/bin/env python
+'''
+packet-trace.py
+This will track the unicast packets for the test tool and gateway specified.
+It will track the public-to-private flow and the private-to-public flow.
+The packet count and difference will be printed out.
+Optional parms are: 
+-c : count (specify the # of iterations, default is 1)
+-d : delay (specify the seconds between stat gathering, default is 1)
+-n : clear (don't clear the interface counters before starting, default is to clear them)
+'''
 import sys, time, argparse, xml.etree.cElementTree as ET
 # Get the arguments
-parser = argparse.ArgumentParser(description='Tracks UNICAST packets on TVM & SeGW connected interfaces.')
+parser = argparse.ArgumentParser(description='Tracks UNICAST packets on test tool & gateway connected interfaces.')
 parser.add_argument('-t', help='Test tool: tvm1, tvm2, dell',required=True)
-parser.add_argument('-g', help='SeGW: 11 or 21',required=True)
+parser.add_argument('-g', help='SeGW: 11, 21, 3403, 209',required=True)
 parser.add_argument('-c', help='Number of interations (default is 1)',required=False, default=1)
 parser.add_argument('-d', help='Delay per iteration (default is 1)',required=False, default=1)
 parser.add_argument('-n', help='DO NOT clear the interface counters (default is to clear the counters)',required=False, action='store_const', const='no', default='yes')
@@ -14,9 +24,9 @@ gw = str(args.g)
 count = int(args.c)
 delay = float(args.d)
 clear = str(args.n)
-# Set Nexus ports 
-pub_ports = {"tvm1" : "4/1", "tvm2" : "4/2", "11" : "4/11", "21" : "4/28", "dell" : "4/37", "3404" : "3/48"}
-pri_ports = {"tvm1" : "4/13", "tvm2" : "4/14", "11" : "4/23", "21" : "4/27", "dell" : "4/38", "3404" : "3/48"}
+# Devices & their connect Nexus ports 
+pub_ports = {"tvm1" : "4/1", "tvm2" : "4/2", "11" : "4/11", "21" : "4/28", "dell" : "4/37", "3404" : "3/1", "209" : "3/1"}
+pri_ports = {"tvm1" : "4/13", "tvm2" : "4/14", "11" : "4/23", "21" : "4/27", "dell" : "4/38", "3404" : "3/1", "209" : "3/1"}
 # Format the port names
 pub_tool = "Ethernet" + pub_ports[tool]
 pri_tool = "Ethernet" + pri_ports[tool]
@@ -25,8 +35,8 @@ pri_gw = "Ethernet" + pri_ports[gw]
 # Clear interface counters
 if clear == 'yes':
 	clearcmd = 'clear counters interface %s,  %s,  %s,  %s' % (pub_tool, pub_gw, pri_gw, pri_tool)
-	print "Interface counters have been cleared"
 	clip(clearcmd)
+	print "Interface counters have been cleared"
 else:
 	print "Not clearing interfaces"
 	print 
